@@ -300,7 +300,10 @@ export default function Student() {
                               {docr.firstName + " " + docr.lastName || "Unknown"}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {docr.specialization || docr.email}
+                              {docr.email}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {docr.specialization || "General Practitioner"}
                             </div>
                           </div>
                         </div>

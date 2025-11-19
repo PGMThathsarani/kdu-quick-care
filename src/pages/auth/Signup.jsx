@@ -16,6 +16,7 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
     userType: "student",
+    specialization: "", // Add specialization field
   });
 
   const [loading, setLoading] = React.useState(false);
@@ -35,6 +36,16 @@ const Signup = () => {
       return;
     }
 
+    // Validate specialization for doctors
+    if (form.userType === "doctor" && !form.specialization.trim()) {
+      setError("Specialization is required for doctors");
+      return;
+    }
+    if (form.email.split("@")[1] !== "kdu.ac.lk") {
+      setError("Please use your KDU email address to sign up.");
+      return;
+    }
+
     try {
       setLoading(true);
       const cred = await createUserWithEmailAndPassword(
@@ -44,16 +55,23 @@ const Signup = () => {
       );
       const uid = cred.user.uid;
 
-      // Create user document in Firestore under `Users` collection (matches your DB)
+      // Create user document in Firestore under `Users` collection
       const usersRef = collection(db, "Users");
-      await addDoc(usersRef, {
+      const userData = {
         uid,
         email: form.email,
         firstName: form.firstName,
         lastName: form.lastName,
         role: form.userType,
         createdAt: serverTimestamp(),
-      });
+      };
+
+      // Add specialization only if user is a doctor
+      if (form.userType === "doctor") {
+        userData.specialization = form.specialization;
+      }
+
+      await addDoc(usersRef, userData);
 
       // Navigate to login or to role landing
       if (form.userType === "doctor") navigate("/doctor");
@@ -153,6 +171,25 @@ const Signup = () => {
               <option value="doctor">Doctor</option>
             </select>
           </div>
+
+          {/* Specialization field - only shown for doctors */}
+          {form.userType === "doctor" && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Specialization <span className="text-red-500">*</span>
+              </label>
+              <Input
+                name="specialization"
+                value={form.specialization}
+                onChange={handleChange}
+                placeholder="e.g., Cardiology, Pediatrics, General Medicine"
+                required={form.userType === "doctor"}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter your medical specialization
+              </p>
+            </div>
+          )}
 
           {error && <div className="text-sm text-red-600">{error}</div>}
 
